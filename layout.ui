@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>700</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>700</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Temperatuurregeling</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <layout class="QVBoxLayout" name="vl_onderkant">
+      <item>
+       <layout class="QGridLayout" name="gl_instellingen">
+        <item row="1" column="2">
+         <widget class="QLabel" name="l_kp">
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Kp</string>
+          </property>
+          <property name="margin">
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" rowspan="3">
+         <widget class="Line" name="line">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="5">
+         <widget class="QPushButton" name="pb_start">
+          <property name="text">
+           <string>Start</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QDoubleSpinBox" name="sp_kp"/>
+        </item>
+        <item row="1" column="5">
+         <layout class="QHBoxLayout" name="hl_tijdlayout">
+          <item>
+           <widget class="QLabel" name="l_tijdlabel">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Tijd:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="l_tijdwaarde">
+            <property name="text">
+             <string>0</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="3" column="2">
+         <widget class="QLabel" name="l_kd">
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Kd</string>
+          </property>
+          <property name="margin">
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QLabel" name="l_ki">
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Ki</string>
+          </property>
+          <property name="margin">
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="l_instelwaarde">
+          <property name="text">
+           <string>Instelwaarde:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="5">
+         <widget class="QPushButton" name="pb_stop">
+          <property name="text">
+           <string>Stop</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3">
+         <widget class="QDoubleSpinBox" name="sp_kd"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QDoubleSpinBox" name="sp_instelwaarde"/>
+        </item>
+        <item row="2" column="3">
+         <widget class="QDoubleSpinBox" name="sp_ki"/>
+        </item>
+        <item row="1" column="4" rowspan="3">
+         <widget class="Line" name="line_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="PlotWidget" name="gv_temperatuur"/>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="hl_ondersteGrafieken">
+        <item>
+         <widget class="PlotWidget" name="gv_vermogen"/>
+        </item>
+        <item>
+         <widget class="PlotWidget" name="gv_afwijking"/>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>700</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="m_bestand">
+    <property name="title">
+     <string>Bestand</string>
+    </property>
+    <addaction name="a_nieuw"/>
+    <addaction name="a_openen"/>
+    <addaction name="separator"/>
+    <addaction name="a_opslaan"/>
+    <addaction name="a_opslaanAls"/>
+    <addaction name="separator"/>
+    <addaction name="a_exporteren"/>
+   </widget>
+   <addaction name="m_bestand"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="a_nieuw">
+   <property name="text">
+    <string>Nieuw</string>
+   </property>
+  </action>
+  <action name="a_openen">
+   <property name="text">
+    <string>Openen</string>
+   </property>
+  </action>
+  <action name="actionOpslaan">
+   <property name="text">
+    <string>Opslaan</string>
+   </property>
+  </action>
+  <action name="a_opslaan">
+   <property name="text">
+    <string>Opslaan</string>
+   </property>
+  </action>
+  <action name="a_opslaanAls">
+   <property name="text">
+    <string>Opslaan Als...</string>
+   </property>
+  </action>
+  <action name="a_exporteren">
+   <property name="text">
+    <string>Exporteren</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

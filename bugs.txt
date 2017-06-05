@@ -1,0 +1,1 @@
+1. Grafieken afwijking en vermogen veranderen van grootte in fullscreen bij meerdere keer in- en uitschakelen.
