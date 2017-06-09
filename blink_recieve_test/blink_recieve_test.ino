@@ -6,13 +6,22 @@ void setup() {
 void loop() {
   if (Serial.available() > 0)
   {
-    int message = Serial.read()- '0';
+    char message = Serial.read();
+    if (message == 'w')
+    {
+      blinkChar(message);
+    }
+    else
+    {
+      int integer = message- '0';
+      blinkInt(integer);
+    }
     //Serial.print(Serial.read()- '0');
-    blink(message);
+    
   }
 }
 
-void blink(int number) 
+void blinkInt(int number) 
 {
   for (int a=0; a<number; a++)
   {
@@ -22,3 +31,19 @@ void blink(int number)
     delay(500);
   }
 }
+
+void blinkChar(char message)
+{
+  if (message == 'w')
+  {
+    for (int a=0; a<5; a++)
+    {
+      digitalWrite(13, HIGH);
+      delay(100);
+      digitalWrite(13, LOW);
+      delay(100);
+    }
+    delay(2000);
+  }
+}
+

@@ -206,13 +206,13 @@ class Ui_MainWindow(object):
 		self.menubar.addAction(self.m_beeld.menuAction())
 
 		# connecting events
-		self.pb_start.pressed.connect(self.main.start_process)
 		self.sp_instelwaarde.valueChanged.connect(lambda: self.main.change_temperature_goal(self.sp_instelwaarde.value()))
 		#self.sp_instelwaarde.editingFinished.connect(self.sp_instelwaarde.clearFocus())
 		# lambda: self.main.change_temperature_goal(self.sp_instelwaarde.value())
 		self.a_toonAfwijking.toggled.connect(self.afwijking_toggled)
 		self.a_toonVermogen.toggled.connect(self.vermogen_toggled)
 		self.a_refreshCOMs.triggered.connect(self.on_click_refresh_available_coms)
+		self.pb_start.clicked.connect(self.main.start_process)
 
 		QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -320,8 +320,11 @@ class Ui_MainWindow(object):
 		"""Updates the current COM and reopens connection"""
 		self.currentCOM = com
 		opened = self.main.open_com(self.currentCOM, self.currentBaudrate)  # self.main.open_com returns True if connection succeeded.
-		self.display_new_connection_message(succeeded=opened)
-		self.update_statusbar_message(succeeded=opened)
+		if opened:
+			validated = self.main.validate_device()
+			if not validated: self.main.close_com()
+		self.display_new_connection_message(succeeded=validated)
+		self.update_statusbar_message(succeeded=validated)
 
 	def on_click_refresh_available_coms(self):
 		"""Destroys COM-actions, requests from main the available COMs, initiates the instantiation of new COM-actions"""
