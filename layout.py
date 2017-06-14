@@ -12,12 +12,6 @@ class Ui_MainWindow(object):
 		self.currentCOM = None
 		self.currentBaudrate = 9600
 
-		self.temperatureData = []
-		self.errorData = []
-		self.powerData = []
-
-		self.setTemp = 0
-
 	def setupUi(self, MainWindow):
 		self.MainWindow = MainWindow
 		MainWindow.setObjectName("MainWindow")
@@ -83,9 +77,16 @@ class Ui_MainWindow(object):
 		self.l_instelwaarde = QtWidgets.QLabel(self.centralwidget)
 		self.l_instelwaarde.setObjectName("l_instelwaarde")
 		self.gl_instellingen.addWidget(self.l_instelwaarde, 1, 0, 1, 1)
+
+		self.hl_stopclear = QtWidgets.QHBoxLayout()
+		self.hl_stopclear.setObjectName("hl_stopclear")
 		self.pb_stop = QtWidgets.QPushButton(self.centralwidget)
 		self.pb_stop.setObjectName("pb_stop")
-		self.gl_instellingen.addWidget(self.pb_stop, 2, 5, 1, 1)
+		self.pb_wissen = QtWidgets.QPushButton(self.centralwidget)
+		self.pb_wissen.setObjectName("pb_wissen")
+		self.hl_stopclear.addWidget(self.pb_stop)
+		self.hl_stopclear.addWidget(self.pb_wissen)
+		self.gl_instellingen.addLayout(self.hl_stopclear, 2, 5, 1, 1)
 		self.sp_kd = QtWidgets.QDoubleSpinBox(self.centralwidget)
 		self.sp_kd.setObjectName("sp_kd")
 		self.gl_instellingen.addWidget(self.sp_kd, 3, 3, 1, 1)
@@ -109,13 +110,17 @@ class Ui_MainWindow(object):
 		pg.setConfigOption('foreground', 'k')
 		self.measuredTempPen = pg.mkPen(color=(0, 0, 255), width=2)
 		self.setTempPen = pg.mkPen(color=(255,0,0), width=2)
-		self.errorPen = pg.mkPen(color=(0,255,0), width=2)
-		self.powerPen = pg.mkPen(color=(255,255,0), width=2)
+		self.errorPen = pg.mkPen(color=(255,255,0), width=2)
+		self.powerPen = pg.mkPen(color=(0,255,0), width=2)
 
 		# Setting up the temperature graph
 		self.gv_temperatuur = PlotWidget(self.centralwidget)
 		self.gv_temperatuur.setObjectName("gv_temperatuur")
 		self.vl_onderkant.addWidget(self.gv_temperatuur)
+		self.gv_temperatuur.getPlotItem().setXRange(0, 200)
+		self.gv_temperatuur.getPlotItem().setYRange(0, 30)
+		self.gv_temperatuur.getPlotItem().getViewBox().setLimits(xMin = 0, yMax = 30, yMin = 0)
+		self.gv_temperatuur.getPlotItem().setMenuEnabled(False)
 
 		# Setting up the error and power graphs.
 		self.hl_ondersteGrafieken = QtWidgets.QHBoxLayout()
@@ -213,6 +218,8 @@ class Ui_MainWindow(object):
 		self.a_toonVermogen.toggled.connect(self.vermogen_toggled)
 		self.a_refreshCOMs.triggered.connect(self.on_click_refresh_available_coms)
 		self.pb_start.clicked.connect(self.main.start_process)
+		self.pb_stop.clicked.connect(self.main.stop_process)
+		self.pb_wissen.clicked.connect(self.main.clear)
 
 		QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -228,6 +235,7 @@ class Ui_MainWindow(object):
 		self.l_ki.setText(_translate("MainWindow", "Ki"))
 		self.l_instelwaarde.setText(_translate("MainWindow", "Instelwaarde:"))
 		self.pb_stop.setText(_translate("MainWindow", "Stop"))
+		self.pb_wissen.setText(_translate("MainWindow", "Wissen"))
 		self.m_bestand.setTitle(_translate("MainWindow", "Bestand"))
 		self.m_beeld.setTitle(_translate("MainWindow", "Weergeven"))
 		self.m_instelling.setTitle(_translate("MainWindow", "Instellingen"))
@@ -266,33 +274,24 @@ class Ui_MainWindow(object):
 			self.hl_ondersteGrafieken.removeWidget(self.gv_afwijking)
 			self.gv_afwijking.hide()
 
-	def updateGraphs(self, new_temp_value, new_error_value, new_power_value):
-		"""Updates the data for all graphs and redraws the graphs using that data"""
-		# Appending the new measurements to the data lists.
-		self.temperatureData.append(new_temp_value)
-		self.errorData.append(new_error_value)
-		self.powerData.append(new_power_value)
+	def update_outside_temperature(self, newValue):
+		self.l_buitenTempWaarde.setText(newValue)
 
-		# Updating the graphs.
-		self.plotNewTemperatureGraph()
-		self.plotNewErrorGraph()
-		self.plotNewPowerGraph()
-
-	def plotNewTemperatureGraph(self):
+	def plotNewTemperatureGraph(self, updated_data, setTemp):
 		"Plots the current and goal temperature using the newest data"
 		self.gv_temperatuur.getPlotItem().clear()
-		self.gv_temperatuur.getPlotItem().plot([i for i in range(len(self.temperatureData))], self.temperatureData, pen=self.measuredTempPen)
-		self.gv_temperatuur.getPlotItem().addLine(y=self.setTemp)
+		self.gv_temperatuur.getPlotItem().plot([i for i in range(len(updated_data))], updated_data, pen=self.measuredTempPen)
+		self.gv_temperatuur.getPlotItem().addLine(y=setTemp, pen=self.setTempPen)
 
-	def plotNewErrorGraph(self):
+	def plotNewErrorGraph(self, updated_data):
 		"""Plots the error graph using the newest data"""
 		self.gv_afwijking.getPlotItem().clear()
-		self.gv_afwijking.getPlotItem().plot([i for i in range(len(self.errorData))], self.errorData, pen=self.errorPen)
+		self.gv_afwijking.getPlotItem().plot([i for i in range(len(updated_data))], updated_data, pen=self.errorPen)
 
-	def plotNewPowerGraph(self):
+	def plotNewPowerGraph(self, updated_data):
 		"""Plots the power graph using the newest data"""
 		self.gv_vermogen.getPlotItem().clear()
-		self.gv_vermogen.getPlotItem().plot([i for i in range(len(self.powerData))], self.powerData, pen=self.powerPen)
+		self.gv_vermogen.getPlotItem().plot([i for i in range(len(updated_data))], updated_data, pen=self.powerPen)
 
 	def collect_settings(self):
 		"""Returns the settings as inputted by the user"""

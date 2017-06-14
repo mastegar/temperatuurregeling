@@ -65,12 +65,18 @@ void loop() {
     else if (message == "tu") //Opvragen buitentemperatuur
     {
       sensors.requestTemperatures();
-      writeString(String(sensors.getTempCByIndex(0), 2));
+      //writeString(String(sensors.getTempCByIndex(0), 2));
+      writeString(String("hahah"));
     }
     else if (message == "ti")
     {
       sensors.requestTemperatures();
-      writeString(String(sensors.getTempCByIndex(1), 2)); 
+      //writeString(String(sensors.getTempCByIndex(1), 2)); 
+      writeString(String(analogRead(2)));
+    }
+    else if (message == "i")
+    {
+      writeString(String(analogRead(3)));
     }
   }
 }
