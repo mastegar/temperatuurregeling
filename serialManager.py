@@ -34,15 +34,15 @@ class SerialPort(serial.Serial):
 		return result
 
 	def send_command_await_response(self, command):
-		command = command + '.'
+		command = command + '/'
 		self.write(command.encode())
-		response = self.read_until(b'.').decode()
+		response = self.read_until(b'/').decode()
 		response = response[:-1]    # Remove the point.
 		return response
 
 	def send_data(self, identifier, value):
-		self.write((str(identifier)+'.').encode())
-		self.write((str(value)+'.').encode())
+		self.write((str(identifier)+'/').encode())
+		self.write((str(value)+'/').encode())
 
 
 

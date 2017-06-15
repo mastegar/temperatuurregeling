@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
-from pyqtgraph import PlotWidget
+from pyqtgraph import PlotWidget, ViewBox
 
 class Ui_MainWindow(object):
 	def __init__(self, creator):
@@ -42,6 +42,7 @@ class Ui_MainWindow(object):
 
 		self.sp_kp = QtWidgets.QDoubleSpinBox(self.centralwidget)
 		self.sp_kp.setObjectName("sp_kp")
+		self.sp_kp.setMaximum(1000000.00)
 		self.gl_instellingen.addWidget(self.sp_kp, 1, 3, 1, 1)
 		self.hl_tijdlayout = QtWidgets.QHBoxLayout()
 		self.hl_tijdlayout.setObjectName("hl_tijdlayout")
@@ -82,13 +83,14 @@ class Ui_MainWindow(object):
 		self.hl_stopclear.setObjectName("hl_stopclear")
 		self.pb_stop = QtWidgets.QPushButton(self.centralwidget)
 		self.pb_stop.setObjectName("pb_stop")
-		self.pb_wissen = QtWidgets.QPushButton(self.centralwidget)
-		self.pb_wissen.setObjectName("pb_wissen")
+		self.pb_new = QtWidgets.QPushButton(self.centralwidget)
+		self.pb_new.setObjectName("pb_wissen")
 		self.hl_stopclear.addWidget(self.pb_stop)
-		self.hl_stopclear.addWidget(self.pb_wissen)
+		self.hl_stopclear.addWidget(self.pb_new)
 		self.gl_instellingen.addLayout(self.hl_stopclear, 2, 5, 1, 1)
 		self.sp_kd = QtWidgets.QDoubleSpinBox(self.centralwidget)
 		self.sp_kd.setObjectName("sp_kd")
+		self.sp_kd.setMaximum(1000000.00)
 		self.gl_instellingen.addWidget(self.sp_kd, 3, 3, 1, 1)
 		self.sp_instelwaarde = QtWidgets.QDoubleSpinBox(self.centralwidget)
 		self.sp_instelwaarde.setObjectName("sp_instelwaarde")
@@ -97,6 +99,7 @@ class Ui_MainWindow(object):
 		self.gl_instellingen.addWidget(self.sp_instelwaarde, 2, 0, 1, 1)
 		self.sp_ki = QtWidgets.QDoubleSpinBox(self.centralwidget)
 		self.sp_ki.setObjectName("sp_ki")
+		self.sp_ki.setMaximum(1000000.00)
 		self.gl_instellingen.addWidget(self.sp_ki, 2, 3, 1, 1)
 		self.line_2 = QtWidgets.QFrame(self.centralwidget)
 		self.line_2.setFrameShape(QtWidgets.QFrame.VLine)
@@ -119,7 +122,8 @@ class Ui_MainWindow(object):
 		self.vl_onderkant.addWidget(self.gv_temperatuur)
 		self.gv_temperatuur.getPlotItem().setXRange(0, 200)
 		self.gv_temperatuur.getPlotItem().setYRange(0, 30)
-		self.gv_temperatuur.getPlotItem().getViewBox().setLimits(xMin = 0, yMax = 30, yMin = 0)
+		self.gv_temperatuur.getPlotItem().getViewBox().setLimits(xMin = 0, yMax = 40, yMin = 15)
+		self.gv_temperatuur.getPlotItem().getViewBox().enableAutoRange(ViewBox.XAxis, True)
 		self.gv_temperatuur.getPlotItem().setMenuEnabled(False)
 
 		# Setting up the error and power graphs.
@@ -219,7 +223,7 @@ class Ui_MainWindow(object):
 		self.a_refreshCOMs.triggered.connect(self.on_click_refresh_available_coms)
 		self.pb_start.clicked.connect(self.main.start_process)
 		self.pb_stop.clicked.connect(self.main.stop_process)
-		self.pb_wissen.clicked.connect(self.main.clear)
+		self.pb_new.clicked.connect(self.main.new)
 
 		QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -235,7 +239,7 @@ class Ui_MainWindow(object):
 		self.l_ki.setText(_translate("MainWindow", "Ki"))
 		self.l_instelwaarde.setText(_translate("MainWindow", "Instelwaarde:"))
 		self.pb_stop.setText(_translate("MainWindow", "Stop"))
-		self.pb_wissen.setText(_translate("MainWindow", "Wissen"))
+		self.pb_new.setText(_translate("MainWindow", "Nieuw"))
 		self.m_bestand.setTitle(_translate("MainWindow", "Bestand"))
 		self.m_beeld.setTitle(_translate("MainWindow", "Weergeven"))
 		self.m_instelling.setTitle(_translate("MainWindow", "Instellingen"))
@@ -292,6 +296,23 @@ class Ui_MainWindow(object):
 		"""Plots the power graph using the newest data"""
 		self.gv_vermogen.getPlotItem().clear()
 		self.gv_vermogen.getPlotItem().plot([i for i in range(len(updated_data))], updated_data, pen=self.powerPen)
+
+	def clear_all_graphs(self):
+		self.gv_temperatuur.getPlotItem().clear()
+		self.gv_afwijking.getPlotItem().clear()
+		self.gv_vermogen.getPlotItem().clear()
+
+	def lock_settings(self):
+		self.sp_instelwaarde.setEnabled(False)
+		self.sp_kp.setEnabled(False)
+		self.sp_ki.setEnabled(False)
+		self.sp_kd.setEnabled(False)
+
+	def unlock_settings(self):
+		self.sp_instelwaarde.setEnabled(True)
+		self.sp_kp.setEnabled(True)
+		self.sp_ki.setEnabled(True)
+		self.sp_kd.setEnabled(True)
 
 	def collect_settings(self):
 		"""Returns the settings as inputted by the user"""

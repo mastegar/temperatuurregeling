@@ -1,1 +1,2 @@
 1. Grafieken afwijking en vermogen veranderen van grootte in fullscreen bij meerdere keer in- en uitschakelen.
+2. validatie werkt niet als arduinosoftware het niet ondersteunt.

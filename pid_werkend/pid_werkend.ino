@@ -41,6 +41,7 @@ void loop() {
 
   Input = sensors.getTempCByIndex(1);
   dePID.Compute();
+  Serial.print(Output);
 
   // Data naar de serial sturen.
   Serial.print("Temperatuur binnen: ");
@@ -54,7 +55,6 @@ void loop() {
   Serial.println("");
   //Serial.println(Setpoint - sensors.getTempCByIndex(1));
   
-
   // Verwarmingselement aansturen.
   analogWrite(5, Output);
 

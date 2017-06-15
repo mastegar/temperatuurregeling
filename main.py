@@ -11,9 +11,9 @@ class Program(QtCore.QObject):
 
 		self.TiValues = []
 
-		self.data_retrieval_thread = None   # Binnentemperatuur
-		self.collecting_data = False
-		self.timerClock = None
+		self.data_retrieval_thread = None
+		self.process_running = False
+		self.timerClock = self.TimerClock()
 
 		self.temperatureData = []
 		self.errorData = []
@@ -58,9 +58,10 @@ class Program(QtCore.QObject):
 
 	def start_process(self):
 		if not self.isConnected:
-			self.ui.statusbar.showMessage("Geen COM verbinding...")
+			self.ui.statusbar.showMessage("Geen COM verbinding...", 3000)
 			return
-		# Send settings to Arduino.
+
+		#self.ui.lock_settings()
 		settings = self.ui.collect_settings()
 		self.setTemp = settings['setTemp']
 		self.serialPort.send_data('iw', settings['setTemp'])
@@ -68,22 +69,25 @@ class Program(QtCore.QObject):
 		self.serialPort.send_data('ki', settings['Ki'])
 		self.serialPort.send_data('kd', settings['Kd'])
 
-		self.timerClock = self.TimerClock(self.ui.l_tijdwaarde)
-		self.collecting_data = True
+		self.timerClock.set_label(self.ui.l_tijdwaarde)     # Only because l_tijdwaarde isn't yet instantiated when timerClock is instantiated.
+		self.serialPort.send_command_await_response('start')
+		self.process_running = True
 		self.data_retrieval_thread = self.DataRetrievalThread(self)
-		self.data_retrieval_thread.new_data_signal.connect(self.retrieve_data)
+		self.data_retrieval_thread.new_data_signal.connect(self.updateGraphs)
 		self.data_retrieval_thread.start()
 
 	def stop_process(self):
-		"""Stops the arduino's PID control loop"""
-		self.timerClock.zero()
+		self.process_running = False
+		self.ui.unlock_settings()
 
-	def clear(self):
+	def new(self):
 		self.timerClock.zero()
 		self.temperatureData.clear()
 		self.powerData.clear()
 		self.errorData.clear()
-		self.collecting_data = False
+		self.process_running = False
+		self.ui.clear_all_graphs()
+		self.ui.unlock_settings()
 
 	def change_temperature_goal(self, newGoal):
 		self.ui.statusbar.showMessage("Instelwaarde veranderd naar: " + str(newGoal), 3000)
@@ -95,33 +99,27 @@ class Program(QtCore.QObject):
 		return self.availableCOMs
 
 	def validate_partner(self):
-		self.serialPort.send_command_await_response('vr.')
+		self.serialPort.send_command_await_response('vr')
 
-	def updateGraphs(self, new_temp_value, new_power_value):
+	QtCore.pyqtSlot(float, float, float)
+	def updateGraphs(self, new_temp_value, new_power_value, new_outsideTemp_value):
 		"""Updates the data for all graphs and redraws the graphs using that data"""
 		# Appending the new measurements to the data lists.
 		self.temperatureData.append(new_temp_value)
-		#self.errorData.append(new_error_value)
+		self.errorData.append(new_temp_value-self.setTemp)
 		self.powerData.append(new_power_value)
 
 		# Updating the time.
 		self.timerClock.increment()
+		self.ui.update_outside_temperature(str(new_outsideTemp_value))
 
 		# Updating the graphs.
 		self.ui.plotNewTemperatureGraph(self.temperatureData, self.setTemp)
-		#self.ui.plotNewErrorGraph(self.errorData)
+		self.ui.plotNewErrorGraph(self.errorData)
 		self.ui.plotNewPowerGraph(self.powerData)
 
-	QtCore.pyqtSlot()
-	def retrieve_data(self):
-		_new_temp_value = int(self.serialPort.send_command_await_response('ti'))/50
-		_new_power_value = int(self.serialPort.send_command_await_response('i'))
-
-		self.ui.update_outside_temperature(str(_new_power_value))
-		self.updateGraphs(_new_temp_value, _new_power_value)
-
 	class DataRetrievalThread(QtCore.QThread):
-		new_data_signal = QtCore.pyqtSignal()
+		new_data_signal = QtCore.pyqtSignal(float, float, float)
 
 		def __init__(self, creator):
 			super().__init__()
@@ -129,20 +127,29 @@ class Program(QtCore.QObject):
 
 		def run(self):
 			time1 = time.clock()
-			self.new_data_signal.emit()
+
+			print(self.creator.serialPort.send_command_await_response('comp'))
+			_new_temp_value = float(self.creator.serialPort.send_command_await_response('ti'))  # 'ti' has to go first for the most up to date data.
+			_new_power_value = float(self.creator.serialPort.send_command_await_response('i'))
+			_new_outsideTemp_value = float(self.creator.serialPort.send_command_await_response('tu'))
+			self.new_data_signal.emit(_new_temp_value, _new_power_value, _new_outsideTemp_value)
+
 			total_time = time.clock() - time1
 			time.sleep(1 - total_time)
-			if self.creator.collecting_data:
+			if self.creator.process_running:
 				self.run()
 
 	class TimerClock(object):
-		def __init__(self, label):
-			self.label = label
-
+		def __init__(self):
 			self.minutes = 0
 			self.seconds = 0
 
+			self.label = None
+
 			self.reached_max = False
+
+		def set_label(self, label):
+			self.label = label
 
 		def increment(self):
 			if self.reached_max:
